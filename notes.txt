@@ -1,0 +1,5 @@
+Without multithreading:
+2.0440977679991192 seconds
+
+With multithreading:
+0.690737889999582 seconds

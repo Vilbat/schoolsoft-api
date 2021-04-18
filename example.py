@@ -1,8 +1,11 @@
 from schoolsoft import Schoolsoft
+import timeit
 
 
-schoolsoft = Schoolsoft('username', 'password')
+schoolsoft = Schoolsoft('username', 'password', multithreading=True)
 
+
+#print(timeit.timeit(schoolsoft.get_sorted_assignments, number=1))
 
 assignments = schoolsoft.get_sorted_assignments()
 newest_assignment = schoolsoft.get_newest_assignment()

@@ -2,13 +2,15 @@ import requests, datetime, json
 
 from assignment_type import Assignment
 import traceback
+import threading
 
 
 class Schoolsoft:
-    def __init__(self, username, password):
+    def __init__(self, username, password, multithreading=False):
         print("Class initialized")
         self.username = username
         self.password = password
+        self.multithreading = multithreading
 
         self.subjects = 19
 
@@ -24,6 +26,7 @@ class Schoolsoft:
             'button': 'Login'
         }
         self.session.post(self.login_url, data=data)
+        self.results = []
 
     def parse_assignments(self, unparsed_json):
         results = []
@@ -46,20 +49,36 @@ class Schoolsoft:
 
         return results
 
-
-    def get_assignments(self):
-        results = []
-
-        for i in range(self.subjects):
+    def get_assignments_from_class(self, i):
             try:
                 response = self.session.get(self.subject_url.format(i))
                 response_json = response.json()
 
                 parsed_subjects = self.parse_assignments(response_json)
-                results.append(parsed_subjects)
+                #return parsed_subjects
+                self.results.append(parsed_subjects)
             except Exception as e:
                 print(traceback.format_exc())
-        return [i for sublist in results for i in sublist]
+
+    def get_assignments(self):
+        self.results = []
+
+        threads = []
+
+        for i in range(self.subjects):
+            if self.multithreading:
+                t = threading.Thread(target=lambda : self.get_assignments_from_class(i))
+                t.daemon = True
+                threads.append(t)
+            else:
+                self.get_assignments_from_class(i)
+        if self.multithreading:
+            for i in range(self.subjects):
+                threads[i].start()
+
+            for i in range(self.subjects):
+                threads[i].join()
+        return [i for sublist in self.results for i in sublist]
 
 
     def get_sorted_assignments(self):
